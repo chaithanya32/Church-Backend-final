@@ -15,7 +15,7 @@ def create_notification(payload: EmailNotificationCreate, db: Session = Depends(
         recipient_email=payload.recipient_email,
         subject=payload.subject,
         body=payload.message,
-        status=payload.status  # ✅ Now safe to include
+        status=payload.status  
     )
     db.add(notification)
     db.commit()
