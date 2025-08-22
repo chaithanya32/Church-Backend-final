@@ -1,15 +1,12 @@
-
 from sqlalchemy import Column, Integer, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
 from utilities.database import Base
-from models.task_log import TaskLog
 
-class Volunteer(Base):
-    __tablename__ = "volunteers"
+class Admin(Base):
+    __tablename__ = "admins"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    task_logs = relationship("TaskLog", back_populates="volunteer")
-    user = relationship("User")
+    user = relationship("User", back_populates="admin")

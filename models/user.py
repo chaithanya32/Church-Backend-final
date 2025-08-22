@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from datetime import datetime
 from utilities.database import Base
 from sqlalchemy.orm import relationship
+from .admin import Admin
 
 class User(Base):
     __tablename__ = "users"
@@ -25,3 +26,5 @@ class User(Base):
     attendance_logs = relationship("AttendanceLog", back_populates="user")
     otp_resets = relationship("PasswordResetOTP", back_populates="user")
     temporary_attendance_logs = relationship("AttendanceTemporary", back_populates="user")
+    admin = relationship("Admin", uselist=False, back_populates="user")
+

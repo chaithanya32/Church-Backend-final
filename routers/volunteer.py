@@ -2,25 +2,39 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from models.volunteer import Volunteer
 from models.user import User
+from models.admin import Admin
+from validators.volunteer import VolunteerCreate, VolunteerOut
 from utilities.database import get_db
 from utilities.auth import get_current_user
+from utilities.auth import get_current_admin
 
 router = APIRouter(prefix="/volunteers", tags=["Volunteers"])
 
-@router.post("/")
-def create_volunteer(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    # Optional: Check if current user is admin or superuser
+@router.post("/", response_model=VolunteerOut)
+def create_volunteer(
+    volunteer_data: VolunteerCreate,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin)  # ✅ now checks Admin table
+):
+    # 1. Find user by email
+    user = db.query(User).filter(User.email == volunteer_data.user_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User with this email not found")
 
-    # Check if user is already a volunteer
-    existing = db.query(Volunteer).filter(Volunteer.user_id == user_id).first()
+    # 2. Check if already a volunteer
+    existing = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
     if existing:
         raise HTTPException(status_code=400, detail="User is already a volunteer")
 
-    new_volunteer = Volunteer(user_id=user_id)
+    # 3. Create volunteer entry
+    new_volunteer = Volunteer(user_id=user.id)
     db.add(new_volunteer)
     db.commit()
     db.refresh(new_volunteer)
-    return {"msg": "Volunteer created", "volunteer_id": new_volunteer.id}
+
+    return new_volunteer
+
+
 
 @router.get("/me")
 def check_if_volunteer(
@@ -34,15 +48,21 @@ def check_if_volunteer(
 
 
 @router.get("/")
-def get_all_volunteers(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    # Optional: Restrict to admins
+def get_all_volunteers(
+    db: Session = Depends(get_db), 
+    current_admin: User = Depends(get_current_admin)  # restrict to admins
+):
     volunteers = db.query(Volunteer).all()
     return [
         {
             "volunteer_id": v.id,
-            "user_id": v.user_id
-        } for v in volunteers
+            "user_id": v.user_id,
+            "email": db.query(User).filter(User.id == v.user_id).first().email,
+            "name": db.query(User).filter(User.id == v.user_id).first().name,
+        }
+        for v in volunteers
     ]
+
 
 def verify_volunteer(user: User, db: Session):
     volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
@@ -61,12 +81,22 @@ def volunteer_dashboard(
     # Return data for volunteer dashboard
     return {"message": f"Welcome, {current_user.name}. This is the volunteer dashboard."}
 
-@router.delete("/{volunteer_id}")
-def delete_volunteer(volunteer_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    volunteer = db.query(Volunteer).filter(Volunteer.id == volunteer_id).first()
+@router.delete("/")
+def delete_volunteer_by_email(
+    email: str,
+    db: Session = Depends(get_db),
+    current_admin = Depends(get_current_admin)  # only admins can delete
+):
+    # First, get the user by email
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Then, get the volunteer linked to this user
+    volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
     if not volunteer:
         raise HTTPException(status_code=404, detail="Volunteer not found")
 
     db.delete(volunteer)
     db.commit()
-    return {"msg": "Volunteer removed"}
+    return {"msg": f"Volunteer with email {email} removed successfully"}

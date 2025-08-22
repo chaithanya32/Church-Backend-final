@@ -3,10 +3,12 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
-from fastapi import Depends, HTTPException, Security
+from fastapi import Depends, HTTPException, Security, status
 from sqlalchemy.orm import Session
 from utilities.database import get_db
 from models.user import User
+from models.admin import Admin
+
 SECRET_KEY = "chaithu"  # Use env var in prod
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -43,3 +45,16 @@ def get_current_user(token: str = Security(oauth2_scheme), db: Session = Depends
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+
+def get_current_admin(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    admin = db.query(Admin).filter(Admin.user_id == current_user.id).first()
+    if not admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to perform this action",
+        )
+    return current_user

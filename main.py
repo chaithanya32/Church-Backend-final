@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 from routers import user
+from routers import admin
 from routers import attendance_log
 from routers import email_notification
 from routers import password_reset
@@ -41,6 +42,7 @@ app.add_middleware(
 
 
 app.include_router(user.router)
+app.include_router(admin.router)
 app.include_router(password_reset.router)
 app.include_router(volunteer.router)
 app.include_router(attendance_code_in.router)
