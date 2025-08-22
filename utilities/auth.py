@@ -8,8 +8,9 @@ from sqlalchemy.orm import Session
 from utilities.database import get_db
 from models.user import User
 from models.admin import Admin
+from utilities.config import SECRET_KEY
 
-SECRET_KEY = "chaithu"  # Use env var in prod
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

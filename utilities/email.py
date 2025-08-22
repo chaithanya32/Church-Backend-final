@@ -1,12 +1,7 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import os
-
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS", "bikkichaithanya134@gmail.com")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "mmso wvgl lbqq pgor")
+from utilities.config import EMAIL_HOST, EMAIL_PORT, EMAIL_ADDRESS, EMAIL_PASSWORD
 
 def send_email(to: str, subject: str, body: str = None, otp: str = None, name: str = None):
     msg = MIMEMultipart()

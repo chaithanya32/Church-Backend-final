@@ -6,7 +6,12 @@ from utilities.email import send_email
 
 def create_and_send_notification(db: Session, user_id: int, recipient_email: str, was_present: bool):
     subject = "Thank you for attending Church" if was_present else "We missed you at Church"
-    body = "We're glad you joined us!" if was_present else "Please try to attend next Sunday."
+    body = (
+    "We're blessed to have you join us! 🙏\n\n"
+    "May God guide and inspire you as we worship together. "
+    "We warmly invite you to join our upcoming services and fellowship events, "
+    "so we can grow in faith and community together."           
+    ) if was_present else "Please try to attend next Sunday."
     status = "sent" if was_present else "pending"
     sent_at = datetime.utcnow() if was_present else None
 

@@ -1,0 +1,20 @@
+# Ignore environment file
+.env
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore virtual environment
+myenv/
+venv/
+
+# Ignore VSCode settings
+.vscode/
+
+# Ignore Alembic migration cache
+alembic/__pycache__/
+
+# Ignore build files (if React build accidentally comes here)
+build/
+dist/
